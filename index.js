@@ -144,7 +144,7 @@ exports.connect = function (radio) {
     function pipe_address(node,pipe) {
 	var pipe_segment = [ 0x3c, 0x5a, 0x69, 0x96, 0xa5, 0xc3 ];
 	
-	var result;
+	//var result;
 	//uint8_t* out = reinterpret_cast<uint8_t*>(&result);
 
 	var out=new Buffer(5);	
