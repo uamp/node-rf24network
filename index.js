@@ -26,9 +26,21 @@ exports.connect = function (radio) {
 	setup_address();	
 	//console.log(1,2)
 	//radio.whoami();
-	//var i = 6;
-	//while (i--)
+	rx1=radio.openPipe('rx',pipe_address(node_address,1),{size:32,autoAck:true});
+	rx1.on('data', function(d){	/*call processor*/  }); 
+	rx2=radio.openPipe('rx',pipe_address(node_address,2),{size:32,autoAck:true});
+	rx2.on('data', function(d){	/*call processor*/  }); 
+	rx3=radio.openPipe('rx',pipe_address(node_address,3),{size:32,autoAck:true});
+	rx3.on('data', function(d){	/*call processor*/  }); 
+	rx4=radio.openPipe('rx',pipe_address(node_address,4),{size:32,autoAck:true});
+	rx4.on('data', function(d){	/*call processor*/  }); 
+	rx5=radio.openPipe('rx',pipe_address(node_address,5),{size:32,autoAck:true});
+	rx5.on('data', function(d){	/*call processor*/  }); 
+	rx6=radio.openPipe('rx',pipe_address(node_address,6),{size:32,autoAck:true});
+	rx6.on('data', function(d){	/*call processor*/  }); 
+	 
     	  //radio.openReadingPipe(i,pipe_address(node_address,i));
+    	 
   	//radio.startListening();
 	
 	//console.log(header.from_node());
@@ -40,6 +52,7 @@ exports.connect = function (radio) {
     network.peek = function(header){  };
     network.read = function(header, message,length){  };
     network.write = function(header, message, length){  };
+    
     network.parent = function(){   
 	if ( node_address == 0 )
     	  return -1;
@@ -55,8 +68,8 @@ exports.connect = function (radio) {
     function write_to_pipe(node,pipe){
 	var ok=false;
 	var tx=radio.openPipe('tx',pipe_address(node,pipe),{size:32,autoAck:true}) //need to put this frame size as per frame_size
-	tx.on('ready',function() {			//how long does this function live? ie, does it close once 
-		tx.write(frame_buffer);
+	tx.on('ready',function() {			//how long does this function live? ie, does it close once the write_to_pipe function completes
+		tx.write(frame_buffer);			//what happens if the frame buffer is already over-written before this function starts?
 		});
 	tx.on('error',function(){ 
 		console.log("Error sending");
