@@ -35,8 +35,8 @@ exports.connect = function (radio) {
 		rx4.on('data', function(d){	process_data(d);  }); 
 		rx5=radio.openPipe('rx',pipe_address(node_address,5),{size:32,autoAck:true});
 		rx5.on('data', function(d){	process_data(d);  }); 
-		rx6=radio.openPipe('rx',pipe_address(node_address,6),{size:32,autoAck:true});
-		rx6.on('data', function(d){	process_data(d);  }); 
+		//rx6=radio.openPipe('rx',pipe_address(node_address,6),{size:32,autoAck:true});
+		//rx6.on('data', function(d){	process_data(d);  }); 
 	});
     	  //radio.openReadingPipe(i,pipe_address(node_address,i));
     	 
