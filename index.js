@@ -24,20 +24,19 @@ exports.connect = function (radio) {
 	radio.channel(channel).transmitPower('PA_MAX').dataRate('250kbps').crcBytes(2).autoRetransmit({count:15, delay:4000});
 	radio.begin(function(){radio.printDetails();});
 	setup_address();	
-	//console.log(1,2)
-	//radio.whoami();
+	//want to put this into an array
 	rx1=radio.openPipe('rx',pipe_address(node_address,1),{size:32,autoAck:true});
-	rx1.on('data', function(d){	/*call processor*/  }); 
+	rx1.on('data', function(d){	process_data(d);  }); 
 	rx2=radio.openPipe('rx',pipe_address(node_address,2),{size:32,autoAck:true});
-	rx2.on('data', function(d){	/*call processor*/  }); 
+	rx2.on('data', function(d){	process_data(d);  }); 
 	rx3=radio.openPipe('rx',pipe_address(node_address,3),{size:32,autoAck:true});
-	rx3.on('data', function(d){	/*call processor*/  }); 
+	rx3.on('data', function(d){	process_data(d);  }); 
 	rx4=radio.openPipe('rx',pipe_address(node_address,4),{size:32,autoAck:true});
-	rx4.on('data', function(d){	/*call processor*/  }); 
+	rx4.on('data', function(d){	process_data(d);  }); 
 	rx5=radio.openPipe('rx',pipe_address(node_address,5),{size:32,autoAck:true});
-	rx5.on('data', function(d){	/*call processor*/  }); 
+	rx5.on('data', function(d){	process_data(d);  }); 
 	rx6=radio.openPipe('rx',pipe_address(node_address,6),{size:32,autoAck:true});
-	rx6.on('data', function(d){	/*call processor*/  }); 
+	rx6.on('data', function(d){	process_data(d);  }); 
 	 
     	  //radio.openReadingPipe(i,pipe_address(node_address,i));
     	 
@@ -46,11 +45,14 @@ exports.connect = function (radio) {
 	//console.log(header.from_node());
 	//console.log(header);
     };
+    
+
+    
 
     network.update = function (){   };
     network.available = function(){  };
-    network.peek = function(header){  };
-    network.read = function(header, message,length){  };
+    network.peek = function(header){  }; //as below
+    network.read = function(header, message,length){  }; //will probably end up depricated, as this function will be event driven
     network.write = function(header, message, length){  };
     
     network.parent = function(){   
@@ -63,10 +65,8 @@ exports.connect = function (radio) {
     function open_pipes(){ };
     function find_node(current_node, target_node) { };
 
-    function write(data){  };
-
-    function write_to_pipe(node,pipe){
-	var ok=false;
+    function write_to_pipe(node,pipe){ //would rather have a bottom function that has the full data buffer passed to it
+	//var ok=false;
 	var tx=radio.openPipe('tx',pipe_address(node,pipe),{size:32,autoAck:true}) //need to put this frame size as per frame_size
 	tx.on('ready',function() {			//how long does this function live? ie, does it close once the write_to_pipe function completes
 		tx.write(frame_buffer);			//what happens if the frame buffer is already over-written before this function starts?
@@ -76,8 +76,55 @@ exports.connect = function (radio) {
 		});
     };
 
-    function enqueue() { };
+    function write(to_node){
+    	var ok=false;
+    	if ( !is_valid_address(to_node) ) 
+		 return false; 
+		 
+	var send_node = parent_node; 
+	var send_pipe = parent_pipe; 
 
+	if ( is_direct_child(to_node) ) 
+	{ 
+		// Send directly 
+		send_node = to_node; 
+		// To its listening pipe 
+		send_pipe = 0; 
+	} 
+	// If the node is a child of a child 
+	// talk on our child's listening pipe, 
+	// and let the direct child relay it. 
+	else if ( is_descendant(to_node) ) 
+	{ 
+		send_node = direct_child_route_to(to_node); 
+		send_pipe = 0; 
+	};
+	ok = write_to_pipe( send_node, send_pipe );
+	return ok;
+    };
+
+    function process_data(data){
+    	//copy data into header and frame buffer - do we need to do this?
+    	data.copy(frame_buffer,0,0,frame_size);
+    	data.copy(header,0,0,8); //header is only 8 bytes
+    	//var to_node=data.readUInt16BE(0); //get the to_node
+    	var to_node=header.to_node();
+    	if (to_node==node_address){
+    		enqueue();
+    		//post recieved event
+    	}
+    	else {
+    		write(to_node);
+    	};
+    	
+    };
+
+
+    function enqueue() {
+    	
+    };
+
+	//need to make header a class
     header.to_node=function(to_node){
 	if (arguments.length < 1) return header.readUInt16BE(0);
 	else header.writeUInt16BE(to_node,0);  //might need to be little endian
