@@ -22,22 +22,22 @@ exports.connect = function (radio) {
     	  return;	
 	node_address=node_id;
 	radio.channel(channel).transmitPower('PA_MAX').dataRate('250kbps').crcBytes(2).autoRetransmit({count:15, delay:4000});
-	radio.begin(function(){radio.printDetails();});
-	setup_address();	
-	//want to put this into an array
-	rx1=radio.openPipe('rx',pipe_address(node_address,1),{size:32,autoAck:true});
-	rx1.on('data', function(d){	process_data(d);  }); 
-	rx2=radio.openPipe('rx',pipe_address(node_address,2),{size:32,autoAck:true});
-	rx2.on('data', function(d){	process_data(d);  }); 
-	rx3=radio.openPipe('rx',pipe_address(node_address,3),{size:32,autoAck:true});
-	rx3.on('data', function(d){	process_data(d);  }); 
-	rx4=radio.openPipe('rx',pipe_address(node_address,4),{size:32,autoAck:true});
-	rx4.on('data', function(d){	process_data(d);  }); 
-	rx5=radio.openPipe('rx',pipe_address(node_address,5),{size:32,autoAck:true});
-	rx5.on('data', function(d){	process_data(d);  }); 
-	rx6=radio.openPipe('rx',pipe_address(node_address,6),{size:32,autoAck:true});
-	rx6.on('data', function(d){	process_data(d);  }); 
-	 
+	radio.begin(function(){
+		setup_address();	
+		//want to put this into an array
+		rx1=radio.openPipe('rx',pipe_address(node_address,1),{size:32,autoAck:true});
+		rx1.on('data', function(d){	process_data(d);  }); 
+		rx2=radio.openPipe('rx',pipe_address(node_address,2),{size:32,autoAck:true});
+		rx2.on('data', function(d){	process_data(d);  }); 
+		rx3=radio.openPipe('rx',pipe_address(node_address,3),{size:32,autoAck:true});
+		rx3.on('data', function(d){	process_data(d);  }); 
+		rx4=radio.openPipe('rx',pipe_address(node_address,4),{size:32,autoAck:true});
+		rx4.on('data', function(d){	process_data(d);  }); 
+		rx5=radio.openPipe('rx',pipe_address(node_address,5),{size:32,autoAck:true});
+		rx5.on('data', function(d){	process_data(d);  }); 
+		rx6=radio.openPipe('rx',pipe_address(node_address,6),{size:32,autoAck:true});
+		rx6.on('data', function(d){	process_data(d);  }); 
+	});
     	  //radio.openReadingPipe(i,pipe_address(node_address,i));
     	 
   	//radio.startListening();
