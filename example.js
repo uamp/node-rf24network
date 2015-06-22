@@ -8,6 +8,8 @@ var network=NETWORK.connect(nrf,90,20); //octal 24 - 4th device off the kitchen 
 network.begin(nrf.printDetails());
 //nrf.printDetails();
 
+var head=new Header();
+head.print();
 var data=new Buffer(32);
 network.on('data',function(){
 	data=network.read();
