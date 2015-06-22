@@ -25,9 +25,11 @@ exports.connect = function (radio) {
 	radio.begin(function(){
 		setup_address();	
 		//want to put this into an array
+		rx0=radio.openPipe('rx',pipe_address(node_address,0),{size:32,autoAck:true});
+                rx0.on('data', function(d){     process_data(d);  });
 		rx1=radio.openPipe('rx',pipe_address(node_address,1),{size:32,autoAck:true});
 		rx1.on('data', function(d){	process_data(d);  }); 
-		rx2=radio.openPipe('rx',pipe_address(node_address,2),{size:32,autoAck:true});
+		rx2=radio.openPipe('rx',pipe_address(node_address,2)[4],{size:32,autoAck:true});
 		rx2.on('data', function(d){	process_data(d);  }); 
 		rx3=radio.openPipe('rx',pipe_address(node_address,3)[4],{size:32,autoAck:true});
 		rx3.on('data', function(d){	process_data(d);  }); 
@@ -35,8 +37,9 @@ exports.connect = function (radio) {
 		rx4.on('data', function(d){	process_data(d);  }); 
 		rx5=radio.openPipe('rx',pipe_address(node_address,5)[4],{size:32,autoAck:true});
 		rx5.on('data', function(d){	process_data(d);  }); 
-		//rx6=radio.openPipe('rx',pipe_address(node_address,6),{size:32,autoAck:true});
-		//rx6.on('data', function(d){	process_data(d);  }); 
+		//rx0=radio.openPipe('rx',pipe_address(node_address,0)[4],{size:32,autoAck:true});
+		//rx0.on('data', function(d){	process_data(d);  }); 
+		radio.printDetails();
 	});
     	  //radio.openReadingPipe(i,pipe_address(node_address,i));
     	 
