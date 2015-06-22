@@ -37,7 +37,7 @@ exports.connect = function (radio, channel, node_id) {
 		rx4.on('data', function(d){	process_data(d);  }); 
 		rx5=radio.openPipe('rx',pipe_address(node_address,5)[4],{size:32,autoAck:true});
 		rx5.on('data', function(d){	process_data(d);  }); 
-		//rx0=radio.openPipe('rx',pipe_address(node_address,0)[4],{size:32,autoAck:true});
+		//rx0=radio.openPipe('rx',pipe_address(node_address,0)[4],{autoAck:true});
 		//rx0.on('data', function(d){	process_data(d);  }); 
 		//radio.printDetails();
 		network.emit('ready');
@@ -114,9 +114,10 @@ exports.connect = function (radio, channel, node_id) {
     	data.copy(header,0,frame_size-8,frame_size); //header is only 8 bytes
     	//var to_node=data.readUInt16BE(0); //get the to_node
     	var to_node=header.to_node();
-	//enqueue();
+	enqueue();
 	//console.log(to_node);
 	//console.log(header);
+	//console.log(data);
     	if (to_node==node_address){
     		enqueue();
     		//post recieved event
