@@ -41,8 +41,8 @@ exports.connect = function (radio, channel, node_id) {
     var network = new events.EventEmitter();
     var node_address; /**< Logical node address of this unit, 1 .. UINT_MAX */
     var frame_size = 32; /**< How large is each frame over the air */ 
-    var header= new Buffer(8); 
-    var hh=new Header(); //test this!!
+    var header= new Header(); //new Buffer(8); 
+    //var hh=new Header(); //test this!!
     var frame_buffer=new Buffer(frame_size); /**< Space to put the frame that will be sent/received over the air */
     //var frame_queue=new Buffer(5*frame_size); /**< Space for a small set of frames that need to be delivered to the app layer */
     var frame_queue=[];
@@ -150,7 +150,7 @@ exports.connect = function (radio, channel, node_id) {
     	console.log(data);
     	//copy data into header and frame buffer - do we need to do this?
     	data.copy(frame_buffer,0,0,frame_size); //do we need this?
-    	data.copy(header,0,frame_size-8,frame_size); //header is only 8 bytes
+    	data.copy(header.buffer,0,frame_size-8,frame_size); //header is only 8 bytes
     	//console.log("Orig header");
     	//console.log(header);
     	//more testing
