@@ -3,34 +3,35 @@ var events = require('events'),
     stream = require('stream'),
     util = require('util');
 
-Header function(){
+function Header(){
 	//this = new Buffer(8); //can I do this?
 	this.buffer=new Buffer(8);	
 };
+
 Header.prototype = {
   	//need to make header a class
     to_node: function(to_node){
 	if (arguments.length < 1) return this.buffer.readUInt16BE(4);
 	else this.buffer.writeUInt16BE(to_node,4);  //might need to be little endian
-    }
+    },
 
     from_node: function(from_node){
 	if (arguments.length < 1) return this.buffer.readUInt16BE(6);
 	else this.buffer.writeUInt16BE(from_node,6);  //might need to be little endian
-    }
+    },
 
     id: function(id){
 	if (arguments.length < 1) return this.buffer.readUInt16BE(2);
 	else this.buffer.writeUInt16BE(id,2);  //might need to be little endian
-    }
+    },
 
     type: function(type){
 	if (arguments.length < 1) return this.buffer.readUInt8(1);
 	else this.buffer.writeUInt8(type,1);
-    }
+    },
 	
     print: function(){
-    	console.log("Header buffer:");
+    	console.log("Header buffer:"); //need to add all the logging aspects
     	console.log(this.buffer);
     }
 };
@@ -150,13 +151,12 @@ exports.connect = function (radio, channel, node_id) {
     	//copy data into header and frame buffer - do we need to do this?
     	data.copy(frame_buffer,0,0,frame_size); //do we need this?
     	data.copy(header,0,frame_size-8,frame_size); //header is only 8 bytes
-    	console.log("Orig header");
-    	console.log(header);
+    	//console.log("Orig header");
+    	//console.log(header);
     	//more testing
     	var h_local=new Header();
     	data.copy(h_local.buffer,0,frame_size-8,frame_size);
     	h_local.print();
-    	//var to_node=data.readUInt16BE(0); //get the to_node
     	var to_node=header.to_node();
 	//console.log(to_node);
 	//console.log(header);
@@ -169,7 +169,7 @@ exports.connect = function (radio, channel, node_id) {
 			this.copy(header_test.buffer,0,frame_size-8,frame_size)
 			if (header_test.buffer.equals(h_local.buffer)) add_frame=false;
 			//or
-			if (header.equals(this.slice(frame_size-8,frame_size))) add_frame=false;
+			//if (header.equals(this.slice(frame_size-8,frame_size))) add_frame=false;
     		});
     		if (add_frame) {
     			frame_queue.push(data); //add data onto the queue
