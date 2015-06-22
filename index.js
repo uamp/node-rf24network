@@ -29,11 +29,11 @@ exports.connect = function (radio) {
 		rx1.on('data', function(d){	process_data(d);  }); 
 		rx2=radio.openPipe('rx',pipe_address(node_address,2),{size:32,autoAck:true});
 		rx2.on('data', function(d){	process_data(d);  }); 
-		rx3=radio.openPipe('rx',pipe_address(node_address,3),{size:32,autoAck:true});
+		rx3=radio.openPipe('rx',pipe_address(node_address,3)[4],{size:32,autoAck:true});
 		rx3.on('data', function(d){	process_data(d);  }); 
-		rx4=radio.openPipe('rx',pipe_address(node_address,4),{size:32,autoAck:true});
+		rx4=radio.openPipe('rx',pipe_address(node_address,4)[4],{size:32,autoAck:true});
 		rx4.on('data', function(d){	process_data(d);  }); 
-		rx5=radio.openPipe('rx',pipe_address(node_address,5),{size:32,autoAck:true});
+		rx5=radio.openPipe('rx',pipe_address(node_address,5)[4],{size:32,autoAck:true});
 		rx5.on('data', function(d){	process_data(d);  }); 
 		//rx6=radio.openPipe('rx',pipe_address(node_address,6),{size:32,autoAck:true});
 		//rx6.on('data', function(d){	process_data(d);  }); 
