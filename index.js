@@ -3,24 +3,24 @@ var events = require('events'),
     stream = require('stream'),
     util = require('util');
 
-exports.connect = function (radio) {
+exports.connect = function (radio, channel, node_id) {
     var network = new events.EventEmitter();
     var node_address; /**< Logical node address of this unit, 1 .. UINT_MAX */
     var frame_size = 32; /**< How large is each frame over the air */ 
     var header= new Buffer(8); 
     var frame_buffer=new Buffer(frame_size); /**< Space to put the frame that will be sent/received over the air */
-    var frame_queue=new Buffer(5*frame_size); /**< Space for a small set of frames that need to be delivered to the app layer */
+    //var frame_queue=new Buffer(5*frame_size); /**< Space for a small set of frames that need to be delivered to the app layer */
+    var frame_queue=[];
     var next_frame; /**< Pointer into the @p frame_queue where we should place the next received frame */
     var next_msg_id=1;
     var parent_node; /**< Our parent's node address */
     var parent_pipe; /**< The pipe our parent uses to listen to us */
     var node_mask; /**< The bits which contain signfificant node address information */
 
-    network.begin = function(channel, node_id){ 
-	//console.log(is_valid_address(node_id));
-	if (! is_valid_address(node_id) )
-    	  return;	
-	node_address=node_id;
+    if (!is_valid_address(node_id)) return;
+    node_address=node_id;
+
+    network.begin = function(cb){ 
 	radio.channel(channel).transmitPower('PA_MAX').dataRate('250kbps').crcBytes(2).autoRetransmit({count:15, delay:4000});
 	radio.begin(function(){
 		setup_address();	
@@ -39,23 +39,25 @@ exports.connect = function (radio) {
 		rx5.on('data', function(d){	process_data(d);  }); 
 		//rx0=radio.openPipe('rx',pipe_address(node_address,0)[4],{size:32,autoAck:true});
 		//rx0.on('data', function(d){	process_data(d);  }); 
-		radio.printDetails();
+		//radio.printDetails();
+		network.emit('ready');
+		if (cb) network.once('ready',cb);
 	});
-    	  //radio.openReadingPipe(i,pipe_address(node_address,i));
     	 
   	//radio.startListening();
 	
 	//console.log(header.from_node());
 	//console.log(header);
     };
-    
-
-    
+ 
 
     network.update = function (){   };
-    network.available = function(){  };
+    network.available = function(){  }; //will end up depricated
     network.peek = function(header){  }; //as below
-    network.read = function(header, message,length){  }; //will probably end up depricated, as this function will be event driven
+    //network.read = function(header, message,length){  }; //will probably end up depricated, as this function will be event driven
+    network.read=function(){
+		return frame_queue.pop();    //want to replace this with original function above
+	};
     network.write = function(header, message, length){  };
     
     network.parent = function(){   
@@ -109,12 +111,16 @@ exports.connect = function (radio) {
     function process_data(data){
     	//copy data into header and frame buffer - do we need to do this?
     	data.copy(frame_buffer,0,0,frame_size);
-    	data.copy(header,0,0,8); //header is only 8 bytes
+    	data.copy(header,0,frame_size-8,frame_size); //header is only 8 bytes
     	//var to_node=data.readUInt16BE(0); //get the to_node
     	var to_node=header.to_node();
+	//enqueue();
+	//console.log(to_node);
+	//console.log(header);
     	if (to_node==node_address){
     		enqueue();
     		//post recieved event
+		network.emit('data');
     	}
     	else {
     		write(to_node);
@@ -124,28 +130,31 @@ exports.connect = function (radio) {
 
 
     function enqueue() {
-    	
+	//console.log("Enqueue");
+	//console.log(header.to_node());
+ 	//console.log(frame_buffer);   	
+	frame_queue.push(frame_buffer);
     };
 
 	//need to make header a class
     header.to_node=function(to_node){
-	if (arguments.length < 1) return header.readUInt16BE(0);
-	else header.writeUInt16BE(to_node,0);  //might need to be little endian
+	if (arguments.length < 1) return header.readUInt16BE(4);
+	else header.writeUInt16BE(to_node,4);  //might need to be little endian
     };
 
     header.from_node=function(from_node){
-	if (arguments.length < 1) return header.readUInt16BE(2);
-	else header.writeUInt16BE(from_node,2);  //might need to be little endian
+	if (arguments.length < 1) return header.readUInt16BE(6);
+	else header.writeUInt16BE(from_node,6);  //might need to be little endian
     };
 
     header.id=function(id){
-	if (arguments.length < 1) return header.readUInt16BE(4);
-	else header.writeUInt16BE(id,4);  //might need to be little endian
+	if (arguments.length < 1) return header.readUInt16BE(2);
+	else header.writeUInt16BE(id,2);  //might need to be little endian
     };
 
     header.type=function(type){
-	if (arguments.length < 1) return header.readUInt8(6);
-	else header.writeUInt8(type,6);  //might need to be little endian
+	if (arguments.length < 1) return header.readUInt8(1);
+	else header.writeUInt8(type,1);
     };
 	
     function is_direct_child(  node ){ 
@@ -228,6 +237,7 @@ exports.connect = function (radio) {
 	
 	//IF_SERIAL_DEBUG(uint32_t* top = reinterpret_cast<uint32_t*>(out+1);printf_P(PSTR("%lu: NET Pipe %i on node 0%o has address %lx%x\n\r"),millis(),pipe,node,*top,*out));
 	//var out=Buffer("F0F0F0F0F0", 'hex');
+	console.log(out);
 	return out;
    };
 
