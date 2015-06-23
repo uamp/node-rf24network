@@ -6,6 +6,8 @@ https://github.com/maniacbug/RF24Network/
 
 https://github.com/natevw/node-nrf/
 
-UNFINISHED - I still have a long way to go with completing this.  Most of the helper functions are complete, but is still lacking the real meat.  Any help is warmly welcome.
+UNFINISHED - I still have a long way to go with completing this.  Any help is warmly welcome.
+
+Current sticking point is the underlying radio driver maintaing control over which physical pipe slots are used when openPipe() is used.  Also as the network layer needs to use all 6 listening pipes, the radio driver doesn't seem to reset them after a tx event has occured (bearing in mind that the NRF chip automatically sets P0 the same as it's transmit pipe)
 
 The code in the node_modules sub folder is just a direct copy (of natevw's code) with only one small edit - lowered the SPI speed to improve NRF reliability on the PI.
