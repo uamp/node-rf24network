@@ -109,16 +109,21 @@ exports.connect = function (radio, channel, node_id) {
 	};
     network.write = function(header, message, length){
     	//if (arguments.length >2 ) 
+    	console.log(typeof header);
+    	console.log(typeof message);
     	var frame_buffer=new Buffer(frame_size);
     	if (typeof header === "number") { //if header is a number, make new header and assume it was parsing a to_node
-    		var h=new Header();
-    		h.to_node=header;
+    		var h=new_header(header); //need to also try this.new_header and network.new_header
+    		//h.to_node=header;
     		h.buffer.copy(frame_buffer,0,frame_size-8,frame_size);	
     	} else { //otherwise, we have been passed an actual header object - need to add a test to confirm
     		header.buffer.copy(frame_buffer,0,frame_size-8,frame_size);
     	};
     	//need to determine message typeof to determine how to handle it
+    	frame_buffer.write(message,0,frame_size-8); //i think the bytes need to be reversed into the buffer to work
+    	write(frame_buffer);
     };
+    
     network.parent = function(){   
 	if ( node_address == 0 )
     	  return -1;
