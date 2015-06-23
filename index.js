@@ -3,7 +3,9 @@ var events = require('events'),
     stream = require('stream'),
     util = require('util');
 
-function Header(){
+function Header(frame){
+	//to test:....
+	//if (arguments.length ==1 ) this.extract(frame); 
 	//this = new Buffer(8); //can I do this?
 	this.buffer=new Buffer(8);	
 };
@@ -33,6 +35,10 @@ Header.prototype = {
     print: function(){
     	console.log("Header buffer:"); //need to add all the logging aspects
     	console.log(this.buffer);
+    },
+    
+    extract: function(frame){
+    	frame.copy(this.buffer,0,frame_size-8,frame_size);
     }
 };
 
@@ -99,11 +105,20 @@ exports.connect = function (radio, channel, node_id) {
     //network.read = function(header, message,length){  }; //do we really need the ability to select message based on header?
     network.read=function(){
     		// handle end of queue
-		return frame_queue.pop();    //want to replace this with original function above
+		return frame_queue.pop();    //handle the situation when queue is empty
 	};
     network.write = function(header, message, length){
+    	//if (arguments.length >2 ) 
+    	var frame_buffer=new Buffer(frame_size);
+    	if (typeof header === "number") { //if header is a number, make new header and assume it was parsing a to_node
+    		var h=new Header();
+    		h.to_node=header;
+    		h.buffer.copy(frame_buffer,0,frame_size-8,frame_size);	
+    	} else { //otherwise, we have been passed an actual header object - need to add a test to confirm
+    		header.buffer.copy(frame_buffer,0,frame_size-8,frame_size);
     	};
-    
+    	//need to determine message typeof to determine how to handle it
+    };
     network.parent = function(){   
 	if ( node_address == 0 )
     	  return -1;
@@ -114,7 +129,7 @@ exports.connect = function (radio, channel, node_id) {
     function open_pipes(){ };
     function find_node(current_node, target_node) { };
 
-    function write_to_pipe(node,pipe){ //would rather have a bottom function that has the full data buffer passed to it
+    function write_to_pipe(node,pipe,frame_buffer){ //would rather have a bottom function that has the full data buffer passed to it
 	//var ok=false;
 	var tx=radio.openPipe('tx',pipe_address(node,pipe),{size:32,autoAck:true}) //need to put this frame size as per frame_size
 	tx.on('ready',function() {			//how long does this function live? ie, does it close once the write_to_pipe function completes
@@ -125,7 +140,7 @@ exports.connect = function (radio, channel, node_id) {
 		});
     };
 
-    function write(to_node){
+    function write_to(to_node,frame_buffer){
     	var ok=false;
     	if ( !is_valid_address(to_node) ) 
 		 return false; 
@@ -148,47 +163,47 @@ exports.connect = function (radio, channel, node_id) {
 		send_node = direct_child_route_to(to_node); 
 		send_pipe = 0; 
 	};
-	ok = write_to_pipe( send_node, send_pipe );
+	ok = write_to_pipe( send_node, send_pipe,frame_buffer );
 	return ok;
     };
 
-    function process_data(data){
+    function write(frame_buffer){
+    	var h=new Header();
+    	h.extract(frame_buffer);
+    	write_to(h.to_node(),frame_buffer);
+    };
+
+    function process_data(frame){
     	console.log("Rec Data:");
-    	console.log(data);
+    	console.log(frame);
     	//copy data into header and frame buffer - do we need to do this?
-    	data.copy(frame_buffer,0,0,frame_size); //do we need this?
+    	frame.copy(frame_buffer,0,0,frame_size); //do we need this?
     	//data.copy(header.buffer,0,frame_size-8,frame_size); //header is only 8 bytes
-    	//console.log("Orig header");
-    	//console.log(header);
-    	//more testing
     	var data_header=new Header();
-    	data.copy(data_header.buffer,0,frame_size-8,frame_size);
+    	data_header.extract(frame); //should replicate the line below
+    	//data.copy(data_header.buffer,0,frame_size-8,frame_size);
     	data_header.print();
     	//var to_node=header.to_node();
-    	var to_node=data_header.to_node();
-	//console.log(to_node);
-	//console.log(header);
-	//console.log(data);
-    	if (to_node==node_address){
+    	if (data_header.to_node()==node_address){
     		//enqueue();
-    		var h_queue=new Header();
+    		var queue_header=new Header();
     		var add_frame=true;
     		frame_queue.forEach(function(){
-			this.copy(header_q.buffer,0,frame_size-8,frame_size)
-			if (header_test.buffer.equals(h_local.buffer)) add_frame=false;
+			//this.copy(queue_header.buffer,0,frame_size-8,frame_size);
+			queue_header.extract(this);
+			if (queue_header.buffer.equals(h_local.buffer)) add_frame=false;
 			//or
 			//if (header.equals(this.slice(frame_size-8,frame_size))) add_frame=false;
     		});
     		if (add_frame) {
-    			frame_queue.push(data); //add data onto the queue
+    			frame_queue.push(frame); //add data onto the queue
 			network.emit('data'); //send data event to any listeners
     		};
     	}
     	else {
-    		//write_buffer(data);
+    		write(frame); 
     		//write(to_node);
     	};
-    	
     };
 
     function is_direct_child(  node ){ 
