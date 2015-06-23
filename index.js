@@ -1,7 +1,9 @@
 
 var events = require('events'),
     stream = require('stream'),
-    util = require('util');
+    util = require('util'),
+    frame_size=32; //frame size over the air
+
 
 function Header(frame){
 	//to test:....
@@ -46,7 +48,6 @@ Header.prototype = {
 exports.connect = function (radio, channel, node_id) {
     var network = new events.EventEmitter();
     var node_address; /**< Logical node address of this unit, 1 .. UINT_MAX */
-    var frame_size = 32; /**< How large is each frame over the air */ 
     var header= new Header(); //new Buffer(8); 
     //var hh=new Header(); //test this!!
     var frame_buffer=new Buffer(frame_size); /**< Space to put the frame that will be sent/received over the air */
