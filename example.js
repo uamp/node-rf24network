@@ -21,7 +21,7 @@ console.log(data_send);
 
 var data=new Buffer(32);
 network.on('data',function(){
-	data=network.read_message();
+	data=network.read_message(); //this element works fine - before the write() action below.
 	console.log("message:");
 	console.log(data);
 	network.write(0,data_send);
