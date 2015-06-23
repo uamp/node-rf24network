@@ -85,6 +85,13 @@ exports.connect = function (radio, channel, node_id) {
 	//console.log(header);
     };
  
+    network.new_header=function(to_node){
+    	var h=new Header();
+    	h.to_node(to_node);
+    	h.id(next_msg_id++);
+    	h.from_node(node_address);
+    	return h;
+    };
 
     network.update = function (){   }; //will end up depricated
     network.available = function(){  }; //will end up depricated
@@ -150,23 +157,24 @@ exports.connect = function (radio, channel, node_id) {
     	console.log(data);
     	//copy data into header and frame buffer - do we need to do this?
     	data.copy(frame_buffer,0,0,frame_size); //do we need this?
-    	data.copy(header.buffer,0,frame_size-8,frame_size); //header is only 8 bytes
+    	//data.copy(header.buffer,0,frame_size-8,frame_size); //header is only 8 bytes
     	//console.log("Orig header");
     	//console.log(header);
     	//more testing
-    	var h_local=new Header();
-    	data.copy(h_local.buffer,0,frame_size-8,frame_size);
-    	h_local.print();
-    	var to_node=header.to_node();
+    	var data_header=new Header();
+    	data.copy(data_header.buffer,0,frame_size-8,frame_size);
+    	data_header.print();
+    	//var to_node=header.to_node();
+    	var to_node=data_header.to_node();
 	//console.log(to_node);
 	//console.log(header);
 	//console.log(data);
     	if (to_node==node_address){
     		//enqueue();
-    		var header_test=new Header();
+    		var h_queue=new Header();
     		var add_frame=true;
     		frame_queue.forEach(function(){
-			this.copy(header_test.buffer,0,frame_size-8,frame_size)
+			this.copy(header_q.buffer,0,frame_size-8,frame_size)
 			if (header_test.buffer.equals(h_local.buffer)) add_frame=false;
 			//or
 			//if (header.equals(this.slice(frame_size-8,frame_size))) add_frame=false;
@@ -181,26 +189,6 @@ exports.connect = function (radio, channel, node_id) {
     		//write(to_node);
     	};
     	
-    };
-
-    header.to_node= function(to_node){
-	if (arguments.length < 1) return header.readUInt16BE(4);
-	else header.writeUInt16BE(to_node,4);  //might need to be little endian
-    }
-
-    header.from_node=function(from_node){
-	if (arguments.length < 1) return header.readUInt16BE(6);
-	else header.writeUInt16BE(from_node,6);  //might need to be little endian
-    };
-
-    header.id=function(id){
-	if (arguments.length < 1) return header.readUInt16BE(2);
-	else header.writeUInt16BE(id,2);  //might need to be little endian
-    };
-
-    header.type=function(type){
-	if (arguments.length < 1) return header.readUInt8(1);
-	else header.writeUInt8(type,1);
     };
 
     function is_direct_child(  node ){ 
