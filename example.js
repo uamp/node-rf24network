@@ -27,10 +27,11 @@ network.on('data',function(){
 	network.write(0,data_send);
 	});
 
-
+/*
 console.log("The end");
 var a=0xFFFF;
 var b=new Buffer(1);
 b.writeUInt8(a,0,true);
 console.log(b);
 //test
+*/
